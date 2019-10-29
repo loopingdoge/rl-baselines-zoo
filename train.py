@@ -30,6 +30,7 @@ from stable_baselines.ppo2.ppo2 import constfn
 from utils import make_env, ALGOS, linear_schedule, get_latest_run_id, get_wrapper_class
 from utils.hyperparams_opt import hyperparam_optimization
 from utils.noise import LinearNormalActionNoise
+from utils.sonic_util import make_sonic_env
 
 
 if __name__ == '__main__':
@@ -57,6 +58,7 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', help='Verbose mode (0: no output, 1: INFO)', default=1,
                         type=int)
     parser.add_argument('--gym-packages', type=str, nargs='+', default=[], help='Additional external Gym environemnt package modules to import (e.g. gym_minigrid)')
+    parser.add_argument('--sonic-level', type=str, help='The level for sonic')
     args = parser.parse_args()
 
     # Going through custom gym packages to let them register in the global registory
@@ -99,6 +101,10 @@ if __name__ == '__main__':
         is_atari = False
         if 'NoFrameskip' in env_id:
             is_atari = True
+        
+        is_sonic = False
+        if 'Sonic' in env_id:
+            is_sonic = True
 
         print("=" * 10, env_id, "=" * 10)
 
@@ -107,7 +113,7 @@ if __name__ == '__main__':
             hyperparams_dict = yaml.load(f)
             if env_id in list(hyperparams_dict.keys()):
                 hyperparams = hyperparams_dict[env_id]
-            elif is_atari:
+            elif is_atari or is_sonic:
                 hyperparams = hyperparams_dict['atari']
             else:
                 raise ValueError("Hyperparameters not found for {}-{}".format(args.algo, env_id))
@@ -187,10 +193,17 @@ if __name__ == '__main__':
             """
             global hyperparams
 
-            if is_atari:
+            if is_sonic:
+                if args.verbose > 0:
+                    print("Using Sonic wrapper")
+                env = make_sonic_env(env_id[:-3], args.sonic_level, n_envs, seed=args.seed)
+                # Frame-stacking with 4 frames
+                env = VecFrameStack(env, n_stack=4)
+            elif is_atari:
                 if args.verbose > 0:
                     print("Using Atari wrapper")
-                env = make_atari_env(env_id, num_env=n_envs, seed=args.seed)
+                env = make_sonic_env(env_id[:-3], args.sonic_level, n_envs, seed=args.seed)
+                # env = make_atari_env(env_id, num_env=n_envs, seed=args.seed)
                 # Frame-stacking with 4 frames
                 env = VecFrameStack(env, n_stack=4)
             elif algo_ in ['dqn', 'ddpg']:

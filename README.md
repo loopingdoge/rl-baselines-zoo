@@ -1,5 +1,10 @@
 [![Build Status](https://travis-ci.com/araffin/rl-baselines-zoo.svg?branch=master)](https://travis-ci.com/araffin/rl-baselines-zoo)
 
+# Optimization command example using Sonic
+```sh
+python train.py --algo ppo2 --env SonicTheHedgehog-Genesis-v0 --sonic-level StarLightZone.Act1 -n 50000 -optimize --n-trials 1000 --sampler tpe --pruner median
+```
+
 # RL Baselines Zoo: a Collection of Pre-Trained Reinforcement Learning Agents
 
 <img src="images/BipedalWalkerHardcorePPO2.gif" align="right" width="35%"/>
